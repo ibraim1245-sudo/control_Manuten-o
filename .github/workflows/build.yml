@@ -23,36 +23,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel eel pyinstaller bottle future
 
-      - name: Localizar Arquivos e Corrigir Caminhos
+      - name: Organizar Estrutura (Cria pasta web se não existir)
         shell: powershell
         run: |
-          # Lista os arquivos para o log de erro
-          echo "--- LISTAGEM DE ARQUIVOS NO SERVIDOR ---"
-          dir -Recurse
-          
-          # Tenta encontrar onde está o app.py
-          $appFile = Get-ChildItem -Recurse -Filter "app.py" | Select-Object -First 1
-          if (!$appFile) { throw "ERRO: Arquivo app.py não encontrado no repositório!" }
-          
-          # Tenta encontrar a pasta web (independente de maiúsculas/minúsculas)
-          $webFolder = Get-ChildItem -Recurse -Directory -Filter "web" | Select-Object -First 1
-          if (!$webFolder) { throw "ERRO: Pasta 'web' não encontrada! Verifique se ela foi enviada ao GitHub." }
-
-          # Salva os caminhos para os próximos passos
-          echo "APP_PATH=$($appFile.FullName)" >> $env:GITHUB_ENV
-          echo "WORKING_DIR=$($appFile.DirectoryName)" >> $env:GITHUB_ENV
-          echo "Caminho detectado: $($appFile.DirectoryName)"
+          # Verifica se os arquivos estão soltos na raiz (como no seu log)
+          if (Test-Path "index.html") {
+              echo "Arquivos soltos detectados. Criando pasta web e movendo..."
+              if (!(Test-Path "web")) { New-Item -ItemType Directory -Path "web" }
+              Move-Item "index.html", "main.js", "style.css" -Destination "web" -Force
+          }
+          dir -Recurse # Mostra a estrutura corrigida no log
 
       - name: Compilar EXE Único
         shell: powershell
         run: |
-          cd "${{ env.WORKING_DIR }}"
           python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
 
-      - name: Criar Script do Instalador
+      - name: Criar Script do Instalador (Inno Setup)
         shell: powershell
         run: |
-          cd "${{ env.WORKING_DIR }}"
           $issContent = @"
           [Setup]
           AppName=Manutencao MHI
@@ -77,13 +66,10 @@ jobs:
           $issContent | Out-File -FilePath setup.iss -Encoding utf8
 
       - name: Gerar Instalador .EXE Final
-        shell: powershell
-        run: |
-          cd "${{ env.WORKING_DIR }}"
-          iscc setup.iss
+        run: iscc setup.iss
 
       - name: Upload do Instalador
         uses: actions/upload-artifact@v4
         with:
           name: Instalador-Manutencao-MHI
-          path: "**/installer_output/Instalador_Manutencao_MHI.exe"
+          path: installer_output/Instalador_Manutencao_MHI.exe
