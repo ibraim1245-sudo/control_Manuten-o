@@ -1,11 +1,9 @@
-name: Gerar Instalador Windows 2026
+name: Gerar Instalador Manutencao MHI
 
 on: [push]
 
 env:
-  # Tenta silenciar o aviso do Node e forçar o uso do 24
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   build:
@@ -16,7 +14,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar Python 3.11
-        # Usar 3.11 é mais seguro para compilação em 2026 que a 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -26,26 +23,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel eel pyinstaller bottle future
 
-      - name: Organizar Arquivos (Correção de Estrutura)
+      - name: Organizar Arquivos
         shell: powershell
         run: |
-          # Se os arquivos estiverem soltos (como na sua foto), cria a pasta web e move eles
           if (Test-Path "index.html") {
-            echo "Arquivos detectados na raiz. Movendo para a pasta web..."
             if (!(Test-Path "web")) { New-Item -ItemType Directory -Path "web" }
             Move-Item "index.html", "main.js", "style.css" -Destination "web" -ErrorAction SilentlyContinue
           }
-          dir -Recurse # Mostra no log se deu certo
 
       - name: Compilar EXE
         shell: powershell
         run: |
-          # Executa a compilação garantindo que o caminho está correto
-          python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro"
+          python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
 
       - name: Upload do Executável
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Manutencao-Pro
-          path: dist/GestaoManutencaoPro.exe
+          name: Manutencao-MHI-Windows
+          path: dist/Manutencao_MHI.exe
