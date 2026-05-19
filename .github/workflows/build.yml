@@ -3,12 +3,10 @@ name: Gerar Instalador Windows 2026
 on: [push]
 
 env:
-  # Resolve o aviso do Node.js 24 exigido em 2026
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
-    # Atualizado para a versão mais estável do runner em 2026
     runs-on: windows-2025
 
     steps:
@@ -20,19 +18,21 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Instalar Dependências Críticas
+      - name: Instalar Dependências
         run: |
           python -m pip install --upgrade pip
-          pip install eel pyinstaller bottle future
+          pip install setuptools eel pyinstaller bottle future
 
-      - name: Debug - Listar Arquivos
+      - name: Criar Pasta Web se não existir (Correção de Estrutura)
         run: |
-          echo "Verificando arquivos no diretório raiz:"
-          dir
-          echo "Verificando pasta web:"
-          if (Test-Path web) { dir web } else { echo "ERRO: Pasta 'web' não encontrada!" }
+          if (!(Test-Path web)) {
+            mkdir web
+            move index.html web/
+            move main.js web/
+            move style.css web/
+          }
 
-      - name: Compilar EXE (Modo Robusto)
+      - name: Compilar EXE
         run: |
           python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro" --workpath ./build --distpath ./dist
 
@@ -40,6 +40,5 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Manutencao-2026
+          name: Sistema-Manutencao-Pro
           path: dist/GestaoManutencaoPro.exe
-          retention-days: 5
