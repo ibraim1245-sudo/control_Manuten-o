@@ -1,40 +1,45 @@
-name: Gerar Instalador Windows
+name: Gerar Instalador Windows 2026
 
 on: [push]
 
-# Força o GitHub a usar o Node.js 24 para evitar avisos de depreciação
 env:
+  # Resolve o aviso do Node.js 24 exigido em 2026
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
-    runs-on: windows-latest
+    # Atualizado para a versão mais estável do runner em 2026
+    runs-on: windows-2025
 
     steps:
       - name: Checkout Código
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Configurar Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
-      - name: Instalar Dependências
+      - name: Instalar Dependências Críticas
         run: |
           python -m pip install --upgrade pip
-          pip install eel pyinstaller
+          pip install eel pyinstaller bottle future
 
-      - name: Verificar Estrutura de Pastas (Debug)
+      - name: Debug - Listar Arquivos
         run: |
+          echo "Verificando arquivos no diretório raiz:"
           dir
-          if (Test-Path web) { dir web } else { Write-Error "Pasta 'web' não encontrada!" }
+          echo "Verificando pasta web:"
+          if (Test-Path web) { dir web } else { echo "ERRO: Pasta 'web' não encontrada!" }
 
-      - name: Compilar EXE
+      - name: Compilar EXE (Modo Robusto)
         run: |
-          python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro"
+          python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro" --workpath ./build --distpath ./dist
 
       - name: Upload do Executável
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-Manutencao-Windows
+          name: Sistema-Manutencao-2026
           path: dist/GestaoManutencaoPro.exe
+          retention-days: 5
