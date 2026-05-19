@@ -3,7 +3,6 @@ name: Gerar Instalador Manutencao MHI 2026
 on: [push]
 
 env:
-  # Correção para o aviso de Node.js 20 obsoleto
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -22,15 +21,38 @@ jobs:
       - name: Instalar Dependências
         run: |
           python -m pip install --upgrade pip
-          pip install eel pyinstaller bottle future
+          pip install setuptools wheel eel pyinstaller bottle future
 
-      - name: Compilar EXE Único
-        run: |
-          python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
-
-      - name: Criar Script do Instalador (Inno Setup)
+      - name: Localizar Arquivos e Corrigir Caminhos
         shell: powershell
         run: |
+          # Lista os arquivos para o log de erro
+          echo "--- LISTAGEM DE ARQUIVOS NO SERVIDOR ---"
+          dir -Recurse
+          
+          # Tenta encontrar onde está o app.py
+          $appFile = Get-ChildItem -Recurse -Filter "app.py" | Select-Object -First 1
+          if (!$appFile) { throw "ERRO: Arquivo app.py não encontrado no repositório!" }
+          
+          # Tenta encontrar a pasta web (independente de maiúsculas/minúsculas)
+          $webFolder = Get-ChildItem -Recurse -Directory -Filter "web" | Select-Object -First 1
+          if (!$webFolder) { throw "ERRO: Pasta 'web' não encontrada! Verifique se ela foi enviada ao GitHub." }
+
+          # Salva os caminhos para os próximos passos
+          echo "APP_PATH=$($appFile.FullName)" >> $env:GITHUB_ENV
+          echo "WORKING_DIR=$($appFile.DirectoryName)" >> $env:GITHUB_ENV
+          echo "Caminho detectado: $($appFile.DirectoryName)"
+
+      - name: Compilar EXE Único
+        shell: powershell
+        run: |
+          cd "${{ env.WORKING_DIR }}"
+          python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
+
+      - name: Criar Script do Instalador
+        shell: powershell
+        run: |
+          cd "${{ env.WORKING_DIR }}"
           $issContent = @"
           [Setup]
           AppName=Manutencao MHI
@@ -42,27 +64,26 @@ jobs:
           Compression=lzma
           SolidCompression=yes
           PrivilegesRequired=admin
-
           [Tasks]
           Name: "desktopicon"; Description: "Criar atalho na Area de Trabalho"; GroupDescription: "Icones Adicionais:"; Flags: unchecked
-
           [Files]
           Source: "dist\Manutencao_MHI.exe"; DestDir: "{app}"; Flags: ignoreversion
-
           [Icons]
           Name: "{group}\Manutencao MHI"; Filename: "{app}\Manutencao_MHI.exe"
           Name: "{autodesktop}\Manutencao MHI"; Filename: "{app}\Manutencao_MHI.exe"; Tasks: desktopicon
-
           [Run]
           Filename: "{app}\Manutencao_MHI.exe"; Description: "Lancar Manutencao MHI"; Flags: nowait postinstall skipifsilent
           "@
           $issContent | Out-File -FilePath setup.iss -Encoding utf8
 
       - name: Gerar Instalador .EXE Final
-        run: iscc setup.iss
+        shell: powershell
+        run: |
+          cd "${{ env.WORKING_DIR }}"
+          iscc setup.iss
 
       - name: Upload do Instalador
         uses: actions/upload-artifact@v4
         with:
           name: Instalador-Manutencao-MHI
-          path: installer_output/Instalador_Manutencao_MHI.exe
+          path: "**/installer_output/Instalador_Manutencao_MHI.exe"
