@@ -2,6 +2,10 @@ name: Gerar Instalador Windows
 
 on: [push]
 
+# Força o GitHub a usar o Node.js 24 para evitar avisos de depreciação
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -13,12 +17,17 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Instalar Dependências
         run: |
           python -m pip install --upgrade pip
           pip install eel pyinstaller
+
+      - name: Verificar Estrutura de Pastas (Debug)
+        run: |
+          dir
+          if (Test-Path web) { dir web } else { Write-Error "Pasta 'web' não encontrada!" }
 
       - name: Compilar EXE
         run: |
