@@ -5,7 +5,7 @@ import sys
 import json
 from datetime import datetime
 
-# Lógica de Programador: Caminhos Absolutos
+# Lógica de Programador: Caminhos Absolutos 
 if getattr(sys, 'frozen', False):
     dir_path = os.path.dirname(sys.executable)
 else:
