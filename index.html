@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>SGM Pro - Gestão de Ativos</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>SGM Pro</h2>
+        <nav>
+            <button onclick="showTab('dash')">📊 Dashboard</button>
+            <button onclick="showTab('lista')">🛠️ Ferramentas</button>
+            <button onclick="showTab('add')">➕ Nova Ferramenta</button>
+        </nav>
+    </div>
+
+    <main>
+        <!-- ABA DASHBOARD -->
+        <section id="tab-dash" class="tab-content">
+            <h1>Dashboard de Manutenção</h1>
+            <div class="stats-grid">
+                <div class="card"><h3>Total</h3><p id="stat-total">0</p></div>
+                <div class="card operational"><h3>Operacionais</h3><p id="stat-op">0</p></div>
+                <div class="card warning"><h3>Em Manutenção</h3><p id="stat-man">0</p></div>
+            </div>
+        </section>
+
+        <!-- ABA LISTAGEM -->
+        <section id="tab-lista" class="tab-content" style="display:none;">
+            <h1>Inventário de Ferramentas</h1>
+            <table id="table-tools">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ferramenta</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tool-list-body"></tbody>
+            </table>
+        </section>
+
+        <!-- ABA ADICIONAR -->
+        <section id="tab-add" class="tab-content" style="display:none;">
+            <h1>Cadastrar Novo Ativo</h1>
+            <div class="form-group">
+                <input type="text" id="tool-name" placeholder="Nome da Ferramenta">
+                <select id="tool-status">
+                    <option value="Operacional">Operacional</option>
+                    <option value="Manutenção Pendente">Manutenção Pendente</option>
+                </select>
+                <select id="tool-priority">
+                    <option value="Alta">🔴 Alta Prioridade</option>
+                    <option value="Média">🟡 Média</option>
+                    <option value="Baixa" selected>🟢 Baixa</option>
+                </select>
+                <button onclick="cadastrarFerramenta()">Salvar Ativo</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DE HISTÓRICO -->
+    <div id="modal-history" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Histórico</h2>
+            <div id="history-content"></div>
+            <hr>
+            <h3>Atualizar Status</h3>
+            <select id="new-status">
+                <option value="Operacional">Operacional</option>
+                <option value="Em Reparo">Em Reparo</option>
+                <option value="Crítico">Crítico / Substituir</option>
+            </select>
+            <input type="text" id="update-obs" placeholder="O que foi feito? (Ex: Troca de rolamento)">
+            <button onclick="salvarAtualizacao()">Atualizar</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
