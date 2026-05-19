@@ -3,38 +3,45 @@ name: Gerar Instalador Windows 2026
 on: [push]
 
 env:
+  # Tenta silenciar o aviso do Node e forçar o uso do 24
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   build:
-    runs-on: windows-2025
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Código
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.12
+      - name: Configurar Python 3.11
+        # Usar 3.11 é mais seguro para compilação em 2026 que a 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Instalar Dependências
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools eel pyinstaller bottle future
+          pip install setuptools wheel eel pyinstaller bottle future
 
-      - name: Criar Pasta Web se não existir (Correção de Estrutura)
+      - name: Organizar Arquivos (Correção de Estrutura)
+        shell: powershell
         run: |
-          if (!(Test-Path web)) {
-            mkdir web
-            move index.html web/
-            move main.js web/
-            move style.css web/
+          # Se os arquivos estiverem soltos (como na sua foto), cria a pasta web e move eles
+          if (Test-Path "index.html") {
+            echo "Arquivos detectados na raiz. Movendo para a pasta web..."
+            if (!(Test-Path "web")) { New-Item -ItemType Directory -Path "web" }
+            Move-Item "index.html", "main.js", "style.css" -Destination "web" -ErrorAction SilentlyContinue
           }
+          dir -Recurse # Mostra no log se deu certo
 
       - name: Compilar EXE
+        shell: powershell
         run: |
-          python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro" --workpath ./build --distpath ./dist
+          # Executa a compilação garantindo que o caminho está correto
+          python -m eel app.py web --onefile --noconsole --name "GestaoManutencaoPro"
 
       - name: Upload do Executável
         if: success()
