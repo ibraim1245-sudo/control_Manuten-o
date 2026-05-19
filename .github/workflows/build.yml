@@ -1,75 +1,45 @@
-name: Gerar Instalador Manutencao MHI 2026
-
+name: Build MHI Pro
 on: [push]
-
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout Código
-        uses: actions/checkout@v4
-
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
+      - name: Instalar Libs
+        run: pip install eel pyinstaller bottle future setuptools
 
-      - name: Instalar Dependências
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel eel pyinstaller bottle future
-
-      - name: Organizar Estrutura (Cria pasta web se não existir)
-        shell: powershell
-        run: |
-          # Verifica se os arquivos estão soltos na raiz (como no seu log)
-          if (Test-Path "index.html") {
-              echo "Arquivos soltos detectados. Criando pasta web e movendo..."
-              if (!(Test-Path "web")) { New-Item -ItemType Directory -Path "web" }
-              Move-Item "index.html", "main.js", "style.css" -Destination "web" -Force
-          }
-          dir -Recurse # Mostra a estrutura corrigida no log
-
-      - name: Compilar EXE Único
-        shell: powershell
+      - name: Compilar EXE
         run: |
           python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
 
-      - name: Criar Script do Instalador (Inno Setup)
+      - name: Criar Instalador Profissional
         shell: powershell
         run: |
-          $issContent = @"
+          $iss = @"
           [Setup]
           AppName=Manutencao MHI
-          AppVersion=2.0
+          AppVersion=1.0
           DefaultDirName={autopf}\ManutencaoMHI
-          DefaultGroupName=ManutencaoMHI
-          OutputDir=installer_output
-          OutputBaseFilename=Instalador_Manutencao_MHI
-          Compression=lzma
-          SolidCompression=yes
-          PrivilegesRequired=admin
-          [Tasks]
-          Name: "desktopicon"; Description: "Criar atalho na Area de Trabalho"; GroupDescription: "Icones Adicionais:"; Flags: unchecked
+          OutputDir=out
+          OutputBaseFilename=Instalador_MHI
           [Files]
           Source: "dist\Manutencao_MHI.exe"; DestDir: "{app}"; Flags: ignoreversion
           [Icons]
+          Name: "{autodesktop}\Manutencao MHI"; Filename: "{app}\Manutencao_MHI.exe"
           Name: "{group}\Manutencao MHI"; Filename: "{app}\Manutencao_MHI.exe"
-          Name: "{autodesktop}\Manutencao MHI"; Filename: "{app}\Manutencao_MHI.exe"; Tasks: desktopicon
-          [Run]
-          Filename: "{app}\Manutencao_MHI.exe"; Description: "Lancar Manutencao MHI"; Flags: nowait postinstall skipifsilent
           "@
-          $issContent | Out-File -FilePath setup.iss -Encoding utf8
+          $iss | Out-File -FilePath setup.iss -Encoding utf8
+          iscc setup.iss
 
-      - name: Gerar Instalador .EXE Final
-        run: iscc setup.iss
-
-      - name: Upload do Instalador
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Instalador-Manutencao-MHI
-          path: installer_output/Instalador_Manutencao_MHI.exe
+          name: Instalador-MHI
+          path: out/Instalador_MHI.exe
