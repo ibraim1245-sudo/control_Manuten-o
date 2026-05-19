@@ -1,0 +1,28 @@
+:root { --mhi-blue: #0a2647; --accent: #2c74b3; --success: #206a5d; --danger: #950101; --bg: #f5f5f5; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+
+.sidebar { width: 260px; background: var(--mhi-blue); height: 100vh; color: white; position: fixed; }
+.logo { padding: 30px; font-weight: bold; border-bottom: 1px solid #144272; }
+.logo span { color: #579bb1; }
+nav button { width: 100%; padding: 15px; background: none; border: none; color: #cbd5e0; text-align: left; cursor: pointer; border-left: 4px solid transparent; }
+nav button:hover, nav button.active { background: #144272; border-left-color: #579bb1; color: white; }
+
+.content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }
+.card-kpi { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.card-kpi span { font-size: 13px; color: #718096; }
+.card-kpi h2 { margin: 10px 0; color: var(--mhi-blue); font-size: 32px; }
+
+.mhi-table { width: 100%; background: white; border-radius: 10px; border-collapse: collapse; overflow: hidden; }
+.mhi-table th { background: #edf2f7; padding: 15px; text-align: left; font-size: 13px; }
+.mhi-table td { padding: 15px; border-bottom: 1px solid #edf2f7; }
+
+.os-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.os-card { background: white; padding: 20px; border-radius: 10px; border-left: 5px solid var(--danger); }
+.os-card .done { color: var(--success); font-weight: bold; }
+
+.health-bar { background: #eee; height: 10px; border-radius: 5px; width: 100px; }
+.health-bar div { background: #48bb78; height: 100%; border-radius: 5px; }
+
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; }
+.modal-box { background:white; padding:30px; border-radius:15px; width:400px; }
