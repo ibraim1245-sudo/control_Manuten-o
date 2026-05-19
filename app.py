@@ -44,4 +44,5 @@ def excluir_ferramenta(index):
             json.dump(dados, f, indent=4)
     return True
 
-eel.start('index.html', size=(1150, 800), title="Manutenção MHI")
+# REMOVIDO O ARGUMENTO 'title' QUE CAUSOU O ERRO
+eel.start('index.html', size=(1150, 800))
