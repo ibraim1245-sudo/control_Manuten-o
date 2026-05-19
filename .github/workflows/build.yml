@@ -1,44 +1,44 @@
-name: Gerar Instalador Manutencao MHI
+name: Gerar Instalador MHI Pro
 
 on: [push]
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout Código
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.11
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar Dependências
+      - name: Instalar Libs
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel eel pyinstaller bottle future
+          pip install eel pyinstaller bottle future
 
-      - name: Organizar Arquivos
-        shell: powershell
+      - name: Compilar com PyInstaller
         run: |
-          if (Test-Path "index.html") {
-            if (!(Test-Path "web")) { New-Item -ItemType Directory -Path "web" }
-            Move-Item "index.html", "main.js", "style.css" -Destination "web" -ErrorAction SilentlyContinue
-          }
+          python -m eel app.py web --onefile --noconsole --name "ManutencaoPro_MHI"
 
-      - name: Compilar EXE
-        shell: powershell
+      - name: Criar Instalador com Inno Setup
+        # O GitHub Windows Runner já tem o Inno Setup instalado!
         run: |
-          python -m eel app.py web --onefile --noconsole --name "Manutencao_MHI"
+          echo '[Setup]' > setup.iss
+          echo 'AppName=ManutencaoPro MHI' >> setup.iss
+          echo 'AppVersion=1.0' >> setup.iss
+          echo 'DefaultDirName={pf}\ManutencaoProMHI' >> setup.iss
+          echo 'OutputDir=output' >> setup.iss
+          echo 'OutputBaseFilename=Instalador_MHI' >> setup.iss
+          echo '[Files]' >> setup.iss
+          echo 'Source: "dist\ManutencaoPro_MHI.exe"; DestDir: "{app}"' >> setup.iss
+          echo '[Icons]' >> setup.iss
+          echo 'Name: "{commondesktop}\ManutencaoPro MHI"; Filename: "{app}\ManutencaoPro_MHI.exe"' >> setup.iss
+          iscc setup.iss
 
-      - name: Upload do Executável
-        if: success()
+      - name: Upload do Instalador
         uses: actions/upload-artifact@v4
         with:
-          name: Manutencao-MHI-Windows
-          path: dist/Manutencao_MHI.exe
+          name: Instalador-Windows
+          path: output/Instalador_MHI.exe
